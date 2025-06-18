@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sales Log</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label, select, input { margin-right: 10px; }
+    .controls { margin-bottom: 20px; }
+    .sale-item { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Sales History</h1>
+
+  <div class="controls">
+    <label for="sortOrder">Sort:</label>
+    <select id="sortOrder">
+      <option value="desc">Newest First</option>
+      <option value="asc">Oldest First</option>
+    </select>
+
+    <label for="startDate">From:</label>
+    <input type="date" id="startDate">
+    
+    <label for="endDate">To:</label>
+    <input type="date" id="endDate">
+
+    <button onclick="loadSales()">Apply Filters</button>
+    <button onclick="downloadCSV()">⬇️ Download CSV</button>
+  </div>
+
+  <div id="totalEarnings"><strong>Total Earnings:</strong> ₹0</div>
+  <ul id="salesList"></ul>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="changePage(-1)">⬅️ Prev</button>
+    <span id="pageInfo">Page 1</span>
+    <button id="nextBtn" onclick="changePage(1)">Next ➡️</button>
+  </div>
+
+  <script src="sales.js"></script>
+</body>
+</html>

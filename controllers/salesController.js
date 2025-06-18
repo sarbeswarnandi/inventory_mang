@@ -1,30 +1,89 @@
 const Sale = require('../models/Sale');
 const Product = require('../models/Product');
+const mongoose = require('mongoose');
 
 exports.recordSale = async (req, res) => {
-  const { productId, quantitySold } = req.body;
+  try {
+    const { productId, quantitySold } = req.body;
+    const qty = Number(quantitySold);
 
-  if (!productId || quantitySold <= 0) {
-    return res.status(400).json({ message: "Invalid input" });
+    if (!productId || isNaN(qty) || qty <= 0) {
+      return res.status(400).json({ message: "Invalid productId or quantitySold" });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    if (product.quantity < qty) {
+      return res.status(400).json({ message: "Insufficient stock" });
+    }
+
+    product.quantity -= qty;
+    await product.save();
+
+    const sale = new Sale({ productId, quantitySold: qty });
+    await sale.save();
+
+    res.status(201).json(sale);
+  } catch (err) {
+    console.error('Sale recording error:', err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const product = await Product.findById(productId);
-  if (!product) return res.status(404).json({ message: "Product not found" });
-
-  if (product.quantity < quantitySold) {
-    return res.status(400).json({ message: "Insufficient stock" });
-  }
-
-  product.quantity -= quantitySold;
-  await product.save();
-
-  const sale = new Sale({ productId, quantitySold });
-  await sale.save();
-
-  res.status(201).json(sale);
 };
 
 exports.getSales = async (req, res) => {
-  const sales = await Sale.find().populate('productId', 'name price');
-  res.json(sales);
+  try {
+    const { sort = 'desc', startDate, endDate, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    const filter = {};
+
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const sortOrder = sort === 'asc' ? 1 : -1;
+
+    const sales = await Sale.find(filter)
+      .sort({ date: sortOrder })
+      .skip(skip)
+      .limit(Number(limit))
+      .populate('productId', 'name price');
+
+    const totalSales = await Sale.countDocuments(filter);
+
+    const earningsAgg = await Sale.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'productId',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: '$product' },
+      {
+        $group: {
+          _id: null,
+          totalEarnings: {
+            $sum: { $multiply: ['$quantitySold', '$product.price'] }
+          }
+        }
+      }
+    ]);
+
+    const totalEarnings = earningsAgg[0]?.totalEarnings || 0;
+
+    res.json({
+      sales,
+      totalPages: Math.ceil(totalSales / limit),
+      currentPage: Number(page),
+      totalEarnings
+    });
+  } catch (err) {
+    console.error('Fetch sales error:', err);
+    res.status(500).json({ message: "Server error" });
+  }
 };

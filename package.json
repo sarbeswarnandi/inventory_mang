@@ -1,19 +1,26 @@
 {
   "name": "inventory",
   "version": "1.0.0",
-  "description": "Smart Local Inventory Manager (SLIM) Backend",
+  "description": "Smart Local Inventory Manager (SLIM) - Backend Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "inventory",
+    "nodejs",
+    "express",
+    "mongodb",
+    "SLIM"
+  ],
+  "author": "Sarbeswar Nandi",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "json2csv": "^6.0.0-alpha.2",
     "mongoose": "^7.4.2"
   },
   "devDependencies": {

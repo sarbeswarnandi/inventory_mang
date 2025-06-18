@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SLIM – Inventory Manager</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Smart Local Inventory Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { margin-bottom: 10px; }
+    form { margin-bottom: 20px; }
+    li { margin-bottom: 8px; }
+    .nav { margin-bottom: 20px; }
+  </style>
 </head>
 <body>
-  <h1>Smart Local Inventory Manager (SLIM)</h1>
+  <h1>Inventory Manager</h1>
 
-  <section>
-    <h2>Add Product</h2>
-    <form id="productForm">
-      <input type="text" id="name" placeholder="Product Name" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <input type="number" id="price" placeholder="Price" required />
-      <button type="submit">Add Product</button>
-    </form>
-  </section>
+  <div class="nav">
+    <button onclick="location.href='sales.html'">📈 View Sales Log</button>
+  </div>
 
-  <section>
-    <h2>Product List</h2>
-    <ul id="productList"></ul>
-  </section>
+  <form id="productForm">
+    <input type="text" id="name" placeholder="Product Name" required />
+    <input type="number" id="quantity" placeholder="Quantity" required />
+    <input type="number" id="price" placeholder="Price" required />
+    <button type="submit">➕ Add Product</button>
+  </form>
+
+  <ul id="productList"></ul>
 
   <script src="script.js"></script>
 </body>
