@@ -11,7 +11,17 @@
   </style>
 </head>
 <body>
-  <h1>Sales History</h1>
+
+  <h2>Log a Sale</h2>
+  <form id="saleForm">
+    <select id="productSelect" required>
+      <option value="">Select Product</option>
+    </select>
+    <input type="number" id="saleQuantity" placeholder="Quantity" required />
+    <button type="submit">Log Sale</button>
+  </form>
+
+  <h2>Sales History</h2>
 
   <div class="controls">
     <label for="sortOrder">Sort:</label>
@@ -38,6 +48,9 @@
     <span id="pageInfo">Page 1</span>
     <button id="nextBtn" onclick="changePage(1)">Next ➡️</button>
   </div>
+
+    
+
 
   <script src="sales.js"></script>
 </body>
