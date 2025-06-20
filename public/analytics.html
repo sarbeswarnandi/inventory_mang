@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SLIM - Analytics Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>📊 SLIM – Analytics Dashboard</h1>
+
+  <section>
+    <h2>Sales in Last 7 Days</h2>
+    <canvas id="dailySalesChart" width="400" height="200"></canvas>
+  </section>
+
+  <section>
+    <h2>Top Selling Products</h2>
+    <canvas id="topProductsChart" width="400" height="200"></canvas>
+  </section>
+
+  <section>
+    <h2>Total Earnings</h2>
+    <p id="totalEarnings"><strong>Loading...</strong></p>
+  </section>
+
+  <a href="index.html">← Back to Dashboard</a>
+
+  <script src="analytics.js"></script>
+</body>
+</html>

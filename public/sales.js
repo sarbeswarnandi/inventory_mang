@@ -14,10 +14,18 @@ let totalPages = 1;
 
 // 🔁 Load sales from server with filters
 async function loadSales() {
+  const from = startDate.value;
+  const to = endDate.value;
+
+  if (from && to && from === to) {
+    alert("Start and end dates cannot be the same.");
+    return;
+  }
+
   const query = new URLSearchParams({
     sort: sortOrder.value,
-    startDate: startDate.value,
-    endDate: endDate.value,
+    startDate: from,
+    endDate: to,
     page: currentPage,
     limit: 10
   });
@@ -77,20 +85,6 @@ function downloadCSV() {
   URL.revokeObjectURL(url);
 }
 
-// 🧠 Validate and apply filters
-function applyFilters() {
-  const from = startDate.value;
-  const to = endDate.value;
-
-  if (from && to && from === to) {
-    alert("Start and end dates cannot be the same.");
-    return;
-  }
-
-  currentPage = 1;
-  loadSales();
-}
-
 // 📦 Load product dropdown
 async function loadProducts() {
   const res = await fetch('http://localhost:5000/api/products');
@@ -103,6 +97,12 @@ async function loadProducts() {
     opt.textContent = `${p.name} (₹${p.price})`;
     productSelect.appendChild(opt);
   });
+}
+
+// 🧠 Apply filters (triggered by dropdown/date change)
+function applyFilters() {
+  currentPage = 1;
+  loadSales();
 }
 
 // 📝 Handle sale form submit
