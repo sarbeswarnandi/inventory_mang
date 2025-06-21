@@ -87,3 +87,83 @@ exports.getSales = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    const today = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(today.getDate() - 6);
+
+    const dailySales = await Sale.aggregate([
+      {
+        $match: {
+          date: { $gte: weekAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$date" }
+          },
+          quantity: { $sum: "$quantitySold" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    const topProducts = await Sale.aggregate([
+      {
+        $group: {
+          _id: "$productId",
+          quantity: { $sum: "$quantitySold" }
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          name: "$product.name",
+          quantity: 1
+        }
+      },
+      { $sort: { quantity: -1 } },
+      { $limit: 5 }
+    ]);
+
+    const totalEarnings = await Sale.aggregate([
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: { $multiply: ["$quantitySold", "$product.price"] }
+          }
+        }
+      }
+    ]);
+
+    res.json({
+      totalEarnings: totalEarnings[0]?.total || 0,
+      dailySales,
+      topProducts
+    });
+  } catch (err) {
+    console.error('Analytics Error:', err);
+    res.status(500).json({ message: "Analytics fetch error" });
+  }
+};

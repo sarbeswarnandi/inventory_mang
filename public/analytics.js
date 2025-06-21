@@ -1,33 +1,27 @@
 const API_BASE = 'http://localhost:5000/api/sales';
 
 async function fetchAnalyticsData() {
-  const res = await fetch(`${API_BASE}`);
-  const sales = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/analytics`);
+    const { totalEarnings, dailySales, topProducts } = await res.json();
 
-  // Earnings, daily sales, and product stats
-  let totalEarnings = 0;
-  const salesByDate = {};
-  const productSales = {};
+    // Prepare chart data
+    const salesByDate = Object.fromEntries(
+      dailySales.map(d => [d._id, d.quantity])
+    );
 
-  sales.forEach(sale => {
-    const date = new Date(sale.date).toLocaleDateString();
-    const productName = sale.productId.name;
-    const productPrice = sale.productId.price;
-    const qty = sale.quantitySold;
+    const productSales = Object.fromEntries(
+      topProducts.map(p => [p.name, p.quantity])
+    );
 
-    // Total earnings
-    totalEarnings += qty * productPrice;
-
-    // Group by date
-    salesByDate[date] = (salesByDate[date] || 0) + qty;
-
-    // Group by product
-    productSales[productName] = (productSales[productName] || 0) + qty;
-  });
-
-  renderTotalEarnings(totalEarnings);
-  renderDailySalesChart(salesByDate);
-  renderTopProductsChart(productSales);
+    // Render
+    renderTotalEarnings(totalEarnings);
+    renderDailySalesChart(salesByDate);
+    renderTopProductsChart(productSales);
+  } catch (err) {
+    console.error("Error loading analytics:", err);
+    alert("Failed to load analytics data.");
+  }
 }
 
 function renderTotalEarnings(amount) {
@@ -54,6 +48,11 @@ function renderDailySalesChart(data) {
       responsive: true,
       plugins: {
         legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
       }
     }
   });
@@ -81,4 +80,5 @@ function renderTopProductsChart(data) {
   });
 }
 
+// 🚀 Start fetching
 fetchAnalyticsData();
