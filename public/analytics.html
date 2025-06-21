@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <div id="headerContainer"></div>
   <div class="container">
     <header>
       <h1>📊 Analytics Dashboard</h1>
@@ -34,5 +35,14 @@
   </div>
 
   <script src="analytics.js"></script>
+  <script>
+  // Inject header.html into all pages
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('headerContainer').innerHTML = html;
+    });
+</script>
+
 </body>
 </html>

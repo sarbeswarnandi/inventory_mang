@@ -11,10 +11,17 @@ async function fetchProducts() {
   products.forEach(p => {
     const li = document.createElement('li');
     li.innerHTML = `
+  <div class="product-row">
+    <div class="product-info">
       <strong>${p.name}</strong> – Qty: ${p.quantity} – ₹${p.price}
+    </div>
+    <div class="product-actions">
       <button onclick="editProduct('${p._id}', '${p.name}', ${p.quantity}, ${p.price})">✏️ Edit</button>
       <button onclick="deleteProduct('${p._id}')">❌ Delete</button>
-    `;
+    </div>
+  </div>
+`;
+
     productList.appendChild(li);
   });
 }

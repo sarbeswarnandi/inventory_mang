@@ -2,37 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Smart Local Inventory Manager</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1 { margin-bottom: 10px; }
-    form { margin-bottom: 20px; }
-    li { margin-bottom: 8px; }
-    .nav { margin-bottom: 20px; }
-  </style>
+  <title>SLIM – Inventory Manager</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Inventory Manager</h1>
+  <header>
+    <h1>SLIM – Inventory Manager</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="sales.html">Log Sale</a>
+      <a href="analytics.html">Analytics</a>
+    </nav>
+  </header>
 
-  <div class="nav">
-    <button onclick="location.href='sales.html'">📈 View Sales Log</button>
-  </div>
+  <main>
+    <section class="card">
+      <h2>Add New Product</h2>
+      <form id="productForm">
+        <input type="text" id="name" placeholder="Product Name" required />
+        <input type="number" id="quantity" placeholder="Quantity" min="1" required />
+        <input type="number" id="price" placeholder="Price" min="0" step="0.01" required />
+        <button type="submit">Add Product</button>
+      </form>
+    </section>
 
-  <a href="analytics.html">
-  <button style="margin: 1rem; padding: 0.6rem 1.2rem; font-size: 1rem;">
-    📊 View Analytics
-  </button>
-</a>
-
-
-  <form id="productForm">
-    <input type="text" id="name" placeholder="Product Name" required />
-    <input type="number" id="quantity" placeholder="Quantity" required />
-    <input type="number" id="price" placeholder="Price" required />
-    <button type="submit">➕ Add Product</button>
-  </form>
-
-  <ul id="productList"></ul>
+    <section class="card">
+      <h2>Product List</h2>
+      <ul id="productList" class="product-list"></ul>
+    </section>
+  </main>
 
   <script src="script.js"></script>
 </body>

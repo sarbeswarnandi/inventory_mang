@@ -2,55 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sales Log</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    label, select, input { margin-right: 10px; }
-    .controls { margin-bottom: 20px; }
-    .sale-item { margin: 5px 0; }
-  </style>
+  <title>Log Sale – SLIM</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header>
+    <h1>Log Sales – SLIM</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="sales.html">Log Sale</a>
+      <a href="analytics.html">Analytics</a>
+    </nav>
+  </header>
 
-  <h2>Log a Sale</h2>
-  <form id="saleForm">
-    <select id="productSelect" required>
-      <option value="">Select Product</option>
-    </select>
-    <input type="number" id="saleQuantity" placeholder="Quantity" required />
-    <button type="submit">Log Sale</button>
-  </form>
+  <main>
+    <section class="card">
+      <h2>Log a New Sale</h2>
+      <form id="saleForm">
+        <select id="productSelect" required></select>
+        <input type="number" id="saleQuantity" placeholder="Quantity Sold" min="1" required />
+        <button type="submit">Submit Sale</button>
+      </form>
+    </section>
 
-  <h2>Sales History</h2>
-
-  <div class="controls">
-    <label for="sortOrder">Sort:</label>
-    <select id="sortOrder">
-      <option value="desc">Newest First</option>
-      <option value="asc">Oldest First</option>
-    </select>
-
-    <label for="startDate">From:</label>
-    <input type="date" id="startDate">
-    
-    <label for="endDate">To:</label>
-    <input type="date" id="endDate">
-
-    <button onclick="loadSales()">Apply Filters</button>
-    <button onclick="downloadCSV()">⬇️ Download CSV</button>
-  </div>
-
-  <div id="totalEarnings"><strong>Total Earnings:</strong> ₹0</div>
-  <ul id="salesList"></ul>
-
-  <div class="controls">
-    <button id="prevBtn" onclick="changePage(-1)">⬅️ Prev</button>
-    <span id="pageInfo">Page 1</span>
-    <button id="nextBtn" onclick="changePage(1)">Next ➡️</button>
-  </div>
-
-    
-
+    <section class="card">
+      <h2>Sales History</h2>
+      <div class="filters">
+        <label>Sort:
+          <select id="sortOrder" onchange="applyFilters()">
+            <option value="desc">Latest First</option>
+            <option value="asc">Oldest First</option>
+          </select>
+        </label>
+        <label>From: <input type="date" id="startDate" onchange="applyFilters()" /></label>
+        <label>To: <input type="date" id="endDate" onchange="applyFilters()" /></label>
+        <button onclick="downloadCSV()">Download CSV</button>
+      </div>
+      <div id="totalEarnings" class="earnings"></div>
+      <ul id="salesList" class="sale-list"></ul>
+      <div class="pagination">
+        <button onclick="changePage(-1)">Prev</button>
+        <span id="pageInfo"></span>
+        <button onclick="changePage(1)">Next</button>
+      </div>
+    </section>
+  </main>
 
   <script src="sales.js"></script>
 </body>
