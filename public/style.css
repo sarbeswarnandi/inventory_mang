@@ -1,57 +1,4 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 2rem;
-  background: #f7f7f7;
-}
-
-form input, form button {
-  margin: 0.5rem;
-  padding: 0.5rem;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  background: white;
-  margin: 0.5rem 0;
-  padding: 1rem;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-button {
-  margin-left: 10px;
-  padding: 4px 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.85;
-}
-
-/* public/style.css */
-header a:hover {
-  text-decoration: underline;
-}
-@media (max-width: 600px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  nav {
-    margin-top: 10px;
-  }
-  nav a {
-    display: block;
-    margin: 5px 0;
-  }
-}
-
-body {
   font-family: 'Segoe UI', sans-serif;
   background: #f2f4f7;
   margin: 0;
@@ -73,6 +20,10 @@ nav a {
   color: white;
   margin: 0 1rem;
   text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
 }
 
 main {
@@ -129,6 +80,16 @@ button:hover {
   border-radius: 4px;
 }
 
+.product-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-actions button {
+  margin-left: 0.5rem;
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -146,14 +107,4 @@ button:hover {
   justify-content: center;
   gap: 1rem;
   margin-top: 1rem;
-}
-
-.product-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.product-actions button {
-  margin-left: 0.5rem;
 }

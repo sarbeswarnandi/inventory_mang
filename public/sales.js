@@ -12,20 +12,11 @@ const saleQuantity = document.getElementById('saleQuantity');
 let currentPage = 1;
 let totalPages = 1;
 
-// 🔁 Load sales from server with filters
 async function loadSales() {
-  const from = startDate.value;
-  const to = endDate.value;
-
-  if (from && to && from === to) {
-    alert("Start and end dates cannot be the same.");
-    return;
-  }
-
   const query = new URLSearchParams({
     sort: sortOrder.value,
-    startDate: from,
-    endDate: to,
+    startDate: startDate.value,
+    endDate: endDate.value,
     page: currentPage,
     limit: 10
   });
@@ -37,10 +28,13 @@ async function loadSales() {
   data.sales.forEach(sale => {
     const date = new Date(sale.date).toLocaleString();
     const li = document.createElement('li');
-    li.className = 'sale-item';
     li.innerHTML = `
-      <strong>${sale.productId.name}</strong> – Qty: ${sale.quantitySold} – ₹${sale.productId.price}
-      <br><small>${date}</small>
+      <div class="product-row">
+        <div class="product-info">
+          <strong>${sale.productId.name}</strong> – Qty: ${sale.quantitySold} – ₹${sale.productId.price}
+          <br><small>${date}</small>
+        </div>
+      </div>
     `;
     salesList.appendChild(li);
   });
@@ -50,32 +44,23 @@ async function loadSales() {
   pageInfo.textContent = `Page ${data.currentPage}`;
 }
 
-// ⬅️➡️ Change page
 function changePage(offset) {
-  const nextPage = currentPage + offset;
-  if (nextPage < 1 || nextPage > totalPages) return;
-  currentPage = nextPage;
+  const next = currentPage + offset;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
   loadSales();
 }
 
-// ⬇️ Download as CSV
 function downloadCSV() {
-  const rows = [["Product Name", "Quantity Sold", "Price", "Total", "Date"]];
-  const items = salesList.querySelectorAll('li');
-
-  items.forEach(item => {
-    const [info, dateLine] = item.innerText.split('\n');
-    const [namePart, qtyPart, pricePart] = info.split('–').map(s => s.trim());
-    const name = namePart;
-    const qty = qtyPart.replace("Qty: ", "");
-    const price = pricePart.replace("₹", "");
-    const total = (Number(qty) * Number(price)).toFixed(2);
-    const date = dateLine.trim();
-
-    rows.push([name, qty, price, total, date]);
+  const rows = [["Product Name", "Qty", "Price", "Total", "Date"]];
+  salesList.querySelectorAll('li').forEach(item => {
+    const [line, date] = item.innerText.split('\n');
+    const [name, qty, price] = line.split('–').map(s => s.trim());
+    const total = (Number(qty.replace("Qty: ", "")) * Number(price.replace("₹", ""))).toFixed(2);
+    rows.push([name, qty.replace("Qty: ", ""), price.replace("₹", ""), total, date.trim()]);
   });
 
-  const csv = rows.map(row => row.join(",")).join("\n");
+  const csv = rows.map(r => r.join(",")).join("\n");
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -85,35 +70,18 @@ function downloadCSV() {
   URL.revokeObjectURL(url);
 }
 
-// 📦 Load product dropdown
-async function loadProducts() {
-  const res = await fetch('http://localhost:5000/api/products');
-  const products = await res.json();
-
-  productSelect.innerHTML = '<option value="">Select Product</option>';
-  products.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p._id;
-    opt.textContent = `${p.name} (₹${p.price})`;
-    productSelect.appendChild(opt);
-  });
-}
-
-// 🧠 Apply filters (triggered by dropdown/date change)
 function applyFilters() {
   currentPage = 1;
   loadSales();
 }
 
-// 📝 Handle sale form submit
 saleForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const productId = productSelect.value;
   const quantitySold = saleQuantity.value;
 
   if (!productId || quantitySold <= 0) {
-    alert('Please select a valid product and quantity.');
-    return;
+    return alert('Invalid input');
   }
 
   const res = await fetch(API_BASE, {
@@ -123,15 +91,26 @@ saleForm.addEventListener('submit', async (e) => {
   });
 
   if (res.ok) {
-    alert('Sale logged!');
+    alert('Sale recorded!');
     saleForm.reset();
-    loadSales(); // refresh
+    loadSales();
   } else {
     const err = await res.json();
     alert(`Error: ${err.message}`);
   }
 });
 
-// 🚀 Init
+async function loadProducts() {
+  const res = await fetch('http://localhost:5000/api/products');
+  const products = await res.json();
+  productSelect.innerHTML = '<option value="">Select Product</option>';
+  products.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p._id;
+    opt.textContent = `${p.name} (₹${p.price})`;
+    productSelect.appendChild(opt);
+  });
+}
+
 loadProducts();
 loadSales();

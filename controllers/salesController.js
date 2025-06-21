@@ -1,6 +1,5 @@
 const Sale = require('../models/Sale');
 const Product = require('../models/Product');
-const mongoose = require('mongoose');
 
 exports.recordSale = async (req, res) => {
   try {
@@ -12,22 +11,19 @@ exports.recordSale = async (req, res) => {
     }
 
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    if (product.quantity < qty) {
-      return res.status(400).json({ message: "Insufficient stock" });
+    if (!product || product.quantity < qty) {
+      return res.status(400).json({ message: "Product not found or insufficient stock" });
     }
 
     product.quantity -= qty;
     await product.save();
 
-    const sale = new Sale({ productId, quantitySold: qty });
-    await sale.save();
+    const sale = await Sale.create({ productId, quantitySold: qty });
 
     res.status(201).json(sale);
   } catch (err) {
-    console.error('Sale recording error:', err);
-    res.status(500).json({ message: "Server error" });
+    console.error('Sale error:', err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -43,17 +39,16 @@ exports.getSales = async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    const sortOrder = sort === 'asc' ? 1 : -1;
-
     const sales = await Sale.find(filter)
-      .sort({ date: sortOrder })
+      .sort({ date: sort === 'asc' ? 1 : -1 })
       .skip(skip)
       .limit(Number(limit))
-      .populate('productId', 'name price');
+      .populate('productId', 'name price')
+      .lean();
 
     const totalSales = await Sale.countDocuments(filter);
 
-    const earningsAgg = await Sale.aggregate([
+    const earnings = await Sale.aggregate([
       { $match: filter },
       {
         $lookup: {
@@ -67,20 +62,16 @@ exports.getSales = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalEarnings: {
-            $sum: { $multiply: ['$quantitySold', '$product.price'] }
-          }
+          totalEarnings: { $sum: { $multiply: ['$quantitySold', '$product.price'] } }
         }
       }
     ]);
-
-    const totalEarnings = earningsAgg[0]?.totalEarnings || 0;
 
     res.json({
       sales,
       totalPages: Math.ceil(totalSales / limit),
       currentPage: Number(page),
-      totalEarnings
+      totalEarnings: earnings[0]?.totalEarnings || 0
     });
   } catch (err) {
     console.error('Fetch sales error:', err);
@@ -91,70 +82,57 @@ exports.getSales = async (req, res) => {
 exports.getAnalytics = async (req, res) => {
   try {
     const today = new Date();
-    const weekAgo = new Date();
+    const weekAgo = new Date(today);
     weekAgo.setDate(today.getDate() - 6);
 
-    const dailySales = await Sale.aggregate([
-      {
-        $match: {
-          date: { $gte: weekAgo }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$date" }
-          },
-          quantity: { $sum: "$quantitySold" }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]);
-
-    const topProducts = await Sale.aggregate([
-      {
-        $group: {
-          _id: "$productId",
-          quantity: { $sum: "$quantitySold" }
-        }
-      },
-      {
-        $lookup: {
-          from: "products",
-          localField: "_id",
-          foreignField: "_id",
-          as: "product"
-        }
-      },
-      { $unwind: "$product" },
-      {
-        $project: {
-          name: "$product.name",
-          quantity: 1
-        }
-      },
-      { $sort: { quantity: -1 } },
-      { $limit: 5 }
-    ]);
-
-    const totalEarnings = await Sale.aggregate([
-      {
-        $lookup: {
-          from: "products",
-          localField: "productId",
-          foreignField: "_id",
-          as: "product"
-        }
-      },
-      { $unwind: "$product" },
-      {
-        $group: {
-          _id: null,
-          total: {
-            $sum: { $multiply: ["$quantitySold", "$product.price"] }
+    const [dailySales, topProducts, totalEarnings] = await Promise.all([
+      Sale.aggregate([
+        { $match: { date: { $gte: weekAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+            quantity: { $sum: "$quantitySold" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]),
+      Sale.aggregate([
+        { $group: { _id: "$productId", quantity: { $sum: "$quantitySold" } } },
+        {
+          $lookup: {
+            from: "products",
+            localField: "_id",
+            foreignField: "_id",
+            as: "product"
+          }
+        },
+        { $unwind: "$product" },
+        {
+          $project: {
+            name: "$product.name",
+            quantity: 1
+          }
+        },
+        { $sort: { quantity: -1 } },
+        { $limit: 5 }
+      ]),
+      Sale.aggregate([
+        {
+          $lookup: {
+            from: "products",
+            localField: "productId",
+            foreignField: "_id",
+            as: "product"
+          }
+        },
+        { $unwind: "$product" },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: { $multiply: ["$quantitySold", "$product.price"] } }
           }
         }
-      }
+      ])
     ]);
 
     res.json({
@@ -163,7 +141,7 @@ exports.getAnalytics = async (req, res) => {
       topProducts
     });
   } catch (err) {
-    console.error('Analytics Error:', err);
+    console.error('Analytics error:', err);
     res.status(500).json({ message: "Analytics fetch error" });
   }
 };
