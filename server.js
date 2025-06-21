@@ -8,14 +8,16 @@ const productRoutes = require('./routes/productRoutes');
 const salesRoutes = require('./routes/salesRoutes');
 
 const app = express();
+connectDB();
+
 app.use(cors());
 app.use(express.json());
 
-connectDB();
-
+// API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/sales', salesRoutes);
 
+// Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {

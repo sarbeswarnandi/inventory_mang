@@ -14,6 +14,16 @@
       <a href="index.html" class="back-btn">← Back</a>
     </header>
 
+    <!-- 🔍 Date filter inputs -->
+    <div style="display:flex; gap:1rem; margin:1rem 0;">
+      <label>From:
+        <input type="date" id="analyticsStart" />
+      </label>
+      <label>To:
+        <input type="date" id="analyticsEnd" />
+      </label>
+    </div>
+
     <div class="cards">
       <div class="card">
         <h2>🧮 Total Earnings</h2>
@@ -23,7 +33,7 @@
 
     <div class="charts">
       <div class="chart-card">
-        <h3>📆 Sales in Last 7 Days</h3>
+        <h3>📆 Sales in Selected Date Range</h3>
         <canvas id="dailySalesChart"></canvas>
       </div>
 
@@ -36,13 +46,11 @@
 
   <script src="analytics.js"></script>
   <script>
-  // Inject header.html into all pages
-  fetch('header.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById('headerContainer').innerHTML = html;
-    });
-</script>
-
+    fetch('header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('headerContainer').innerHTML = html;
+      });
+  </script>
 </body>
 </html>

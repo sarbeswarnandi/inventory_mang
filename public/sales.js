@@ -7,11 +7,11 @@ const totalEarningsEl = document.getElementById('totalEarnings');
 const pageInfo = document.getElementById('pageInfo');
 const saleForm = document.getElementById('saleForm');
 const productSelect = document.getElementById('productSelect');
-const saleQuantity = document.getElementById('saleQuantity');
 
 let currentPage = 1;
 let totalPages = 1;
 
+// Fetch and display sales
 async function loadSales() {
   const query = new URLSearchParams({
     sort: sortOrder.value,
@@ -45,19 +45,25 @@ async function loadSales() {
 }
 
 function changePage(offset) {
-  const next = currentPage + offset;
-  if (next < 1 || next > totalPages) return;
-  currentPage = next;
+  const nextPage = currentPage + offset;
+  if (nextPage < 1 || nextPage > totalPages) return;
+  currentPage = nextPage;
   loadSales();
 }
 
 function downloadCSV() {
-  const rows = [["Product Name", "Qty", "Price", "Total", "Date"]];
-  salesList.querySelectorAll('li').forEach(item => {
-    const [line, date] = item.innerText.split('\n');
-    const [name, qty, price] = line.split('–').map(s => s.trim());
-    const total = (Number(qty.replace("Qty: ", "")) * Number(price.replace("₹", ""))).toFixed(2);
-    rows.push([name, qty.replace("Qty: ", ""), price.replace("₹", ""), total, date.trim()]);
+  const rows = [["Product Name", "Quantity Sold", "Price", "Total", "Date"]];
+  const items = salesList.querySelectorAll('li');
+
+  items.forEach(item => {
+    const [info, dateLine] = item.innerText.split('\n');
+    const [name, qtyPart, pricePart] = info.split('–').map(s => s.trim());
+    const qty = qtyPart.replace("Qty: ", "");
+    const price = pricePart.replace("₹", "");
+    const total = (Number(qty) * Number(price)).toFixed(2);
+    const date = dateLine.trim();
+
+    rows.push([name, qty, price, total, date]);
   });
 
   const csv = rows.map(r => r.join(",")).join("\n");
@@ -70,39 +76,11 @@ function downloadCSV() {
   URL.revokeObjectURL(url);
 }
 
-function applyFilters() {
-  currentPage = 1;
-  loadSales();
-}
-
-saleForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const productId = productSelect.value;
-  const quantitySold = saleQuantity.value;
-
-  if (!productId || quantitySold <= 0) {
-    return alert('Invalid input');
-  }
-
-  const res = await fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId, quantitySold })
-  });
-
-  if (res.ok) {
-    alert('Sale recorded!');
-    saleForm.reset();
-    loadSales();
-  } else {
-    const err = await res.json();
-    alert(`Error: ${err.message}`);
-  }
-});
-
+// Load product dropdown
 async function loadProducts() {
   const res = await fetch('http://localhost:5000/api/products');
   const products = await res.json();
+
   productSelect.innerHTML = '<option value="">Select Product</option>';
   products.forEach(p => {
     const opt = document.createElement('option');
@@ -112,5 +90,37 @@ async function loadProducts() {
   });
 }
 
+function applyFilters() {
+  currentPage = 1;
+  loadSales();
+}
+
+saleForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const productId = productSelect.value;
+  const quantitySold = document.getElementById('saleQuantity').value;
+
+  if (!productId || quantitySold <= 0) {
+    alert('Please select a valid product and quantity.');
+    return;
+  }
+
+  const res = await fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productId, quantitySold })
+  });
+
+  if (res.ok) {
+    alert('Sale logged!');
+    saleForm.reset();
+    loadSales();
+  } else {
+    const err = await res.json();
+    alert(`Error: ${err.message}`);
+  }
+});
+
+// Init
 loadProducts();
 loadSales();
