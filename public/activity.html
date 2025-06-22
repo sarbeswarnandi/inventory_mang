@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Activity Log – SLIM</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="headerContainer"></div>
+  <main class="card">
+    <h1>📝 Activity Log</h1>
+    <ul id="activityList" class="activity-list"></ul>
+  </main>
+  <script src="activity.js"></script>
+  <script>
+    fetch('header.html')
+      .then(res => res.text())
+      .then(html => document.getElementById('headerContainer').innerHTML = html);
+  </script>
+</body>
+</html>

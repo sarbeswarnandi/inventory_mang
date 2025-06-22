@@ -8,12 +8,13 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: #f9fafb;
   color: #111827;
-  padding: 2rem;
+  margin: 0;
 }
 
 .container {
   max-width: 1000px;
   margin: auto;
+  padding: 2rem; /* Moved padding here */
 }
 
 header {
@@ -86,6 +87,7 @@ header h1 {
   font-size: 1.1rem;
   color: #374151;
 }
+
 form {
   display: flex;
   flex-wrap: wrap;
@@ -93,7 +95,8 @@ form {
   margin-bottom: 1rem;
 }
 
-form input, form button {
+form input,
+form button {
   padding: 0.5rem;
   font-size: 1rem;
 }

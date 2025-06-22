@@ -4,20 +4,16 @@ const path = require('path');
 require('dotenv').config();
 const connectDB = require('./db');
 
-const productRoutes = require('./routes/productRoutes');
-const salesRoutes = require('./routes/salesRoutes');
-
 const app = express();
 connectDB();
 
 app.use(cors());
 app.use(express.json());
 
-// API Routes
-app.use('/api/products', productRoutes);
-app.use('/api/sales', salesRoutes);
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/sales', require('./routes/salesRoutes'));
+app.use('/api/activities', require('./routes/activityRoutes'));
 
-// Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {

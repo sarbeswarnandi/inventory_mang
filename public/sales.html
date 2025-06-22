@@ -6,14 +6,13 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>Log Sales – SLIM</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="sales.html">Log Sale</a>
-      <a href="analytics.html">Analytics</a>
-    </nav>
-  </header>
+  <div id="headerContainer"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => document.getElementById('headerContainer').innerHTML = html);
+</script>
+
 
   <main>
     <section class="card">

@@ -108,3 +108,15 @@ button:hover {
   gap: 1rem;
   margin-top: 1rem;
 }
+.activity-list, .activity-list li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.activity-list li {
+  background: #fff;
+  margin: 0.5rem 0;
+  padding: 1rem;
+  border-left: 5px solid #4b5563;
+  border-radius: 4px;
+}

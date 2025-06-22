@@ -1,7 +1,7 @@
 const Sale = require('../models/Sale');
 const Product = require('../models/Product');
+const Activity = require('../models/Activity');
 
-// ✅ Record a sale
 exports.recordSale = async (req, res) => {
   try {
     const { productId, quantitySold } = req.body;
@@ -21,7 +21,14 @@ exports.recordSale = async (req, res) => {
     product.quantity -= qty;
     await product.save();
 
-    const sale = await Sale.create({ productId, quantitySold: qty });
+    const sale = new Sale({ productId, quantitySold: qty });
+    await sale.save();
+
+    await Activity.create({
+      action: 'Log Sale',
+      details: `Sold ${qty} of "${product.name}" (id: ${product._id})`
+    });
+
     res.status(201).json(sale);
   } catch (err) {
     console.error('Sale recording error:', err);
@@ -29,7 +36,6 @@ exports.recordSale = async (req, res) => {
   }
 };
 
-// ✅ Get sales with filters, pagination, earnings
 exports.getSales = async (req, res) => {
   try {
     const { sort = 'desc', startDate, endDate, page = 1, limit = 10 } = req.query;
@@ -87,20 +93,24 @@ exports.getSales = async (req, res) => {
   }
 };
 
-// ✅ Get analytics with optional date filters
 exports.getAnalytics = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
+    const filter = {};
 
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 6 * 24 * 60 * 60 * 1000); // default 7 days
-    const end = endDate ? new Date(endDate) : new Date();
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    } else {
+      const today = new Date();
+      const weekAgo = new Date();
+      weekAgo.setDate(today.getDate() - 6);
+      filter.date = { $gte: weekAgo };
+    }
 
     const dailySales = await Sale.aggregate([
-      {
-        $match: {
-          date: { $gte: start, $lte: end }
-        }
-      },
+      { $match: filter },
       {
         $group: {
           _id: {
@@ -113,11 +123,7 @@ exports.getAnalytics = async (req, res) => {
     ]);
 
     const topProducts = await Sale.aggregate([
-      {
-        $match: {
-          date: { $gte: start, $lte: end }
-        }
-      },
+      { $match: filter },
       {
         $group: {
           _id: "$productId",
@@ -144,11 +150,7 @@ exports.getAnalytics = async (req, res) => {
     ]);
 
     const totalEarningsAgg = await Sale.aggregate([
-      {
-        $match: {
-          date: { $gte: start, $lte: end }
-        }
-      },
+      { $match: filter },
       {
         $lookup: {
           from: "products",
@@ -168,10 +170,8 @@ exports.getAnalytics = async (req, res) => {
       }
     ]);
 
-    const totalEarnings = totalEarningsAgg[0]?.total || 0;
-
     res.json({
-      totalEarnings,
+      totalEarnings: totalEarningsAgg[0]?.total || 0,
       dailySales,
       topProducts
     });
