@@ -13,10 +13,10 @@ async function fetchProducts() {
     li.innerHTML = `
       <div class="product-row">
         <div class="product-info">
-          <strong>${p.name}</strong> – Qty: ${p.quantity} – ₹${p.price}
+          <strong>${p.name}</strong> – Qty: ${p.quantity} – ₹${p.price} (Cost ₹${p.costPrice}) – Threshold: ${p.lowStockThreshold || 10}
         </div>
         <div class="product-actions">
-          <button onclick="editProduct('${p._id}', '${p.name}', ${p.quantity}, ${p.price})">✏️ Edit</button>
+          <button onclick="editProduct('${p._id}', '${p.name}', ${p.quantity}, ${p.price}, ${p.costPrice}, ${p.lowStockThreshold})">✏️ Edit</button>
           <button onclick="deleteProduct('${p._id}')">❌ Delete</button>
           <input type="number" min="1" placeholder="Add Qty" id="addQty-${p._id}" style="width:80px; margin-left:10px;" />
           <button onclick="addQuantity('${p._id}', ${p.quantity})">➕ Add</button>
@@ -31,35 +31,49 @@ async function fetchProducts() {
 productForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = document.getElementById('name').value;
-  const quantity = document.getElementById('quantity').value;
-  const price = document.getElementById('price').value;
+  const quantity = parseInt(document.getElementById('quantity').value);
+  const price = parseFloat(document.getElementById('price').value);
+  const costPrice = parseFloat(document.getElementById('costPrice').value);
+  const lowStockThreshold = parseInt(document.getElementById('lowStockThreshold').value) || 10;
+
+  if (!name || isNaN(quantity) || isNaN(price) || isNaN(costPrice)) {
+    alert("All fields are required");
+    return;
+  }
 
   await fetch(API_BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, quantity, price })
+    body: JSON.stringify({ name, quantity, price, costPrice, lowStockThreshold })
   });
 
   productForm.reset();
   fetchProducts();
+  fetchLowStock();
 });
 
 // Edit product
-async function editProduct(id, name, quantity, price) {
-  const newQuantity = prompt(`Update quantity for "${name}"`, quantity);
-  const newPrice = prompt(`Update price for "${name}"`, price);
-  if (newQuantity === null || newPrice === null) return;
+async function editProduct(id, name, quantity, price, costPrice, threshold) {
+  const newQuantity = prompt(`New quantity for "${name}"`, quantity);
+  const newPrice = prompt(`New price for "${name}"`, price);
+  const newCost = prompt(`New cost price for "${name}"`, costPrice);
+  const newThreshold = prompt(`New stock threshold for "${name}"`, threshold);
+
+  if ([newQuantity, newPrice, newCost, newThreshold].includes(null)) return;
 
   await fetch(`${API_BASE}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       quantity: parseInt(newQuantity),
-      price: parseFloat(newPrice)
+      price: parseFloat(newPrice),
+      costPrice: parseFloat(newCost),
+      lowStockThreshold: parseInt(newThreshold)
     })
   });
 
   fetchProducts();
+  fetchLowStock();
 }
 
 // Delete product
@@ -71,7 +85,10 @@ async function deleteProduct(id) {
   });
 
   fetchProducts();
+  fetchLowStock();
 }
+
+// Add quantity to existing product
 async function addQuantity(id, currentQty) {
   const input = document.getElementById(`addQty-${id}`);
   const addQty = parseInt(input.value);
@@ -83,21 +100,24 @@ async function addQuantity(id, currentQty) {
 
   const newQty = currentQty + addQty;
 
-  await fetch(`${API_BASE}/${id}`, {
-    method: 'PUT',
+  await fetch(`${API_BASE}/${id}/add`, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ quantity: newQty })
+    body: JSON.stringify({ quantityToAdd: addQty })
   });
 
-  fetchProducts(); // Refresh the list
+  fetchProducts();
+  fetchLowStock();
 }
 
-
+// Fetch products that are low on stock (threshold = 10)
 async function fetchLowStock() {
-  const res = await fetch(`${API_BASE}/low-stock?threshold=5`);
+  const res = await fetch(`${API_BASE}/low-stock?threshold=10`);
   const products = await res.json();
 
   const list = document.getElementById('lowStockList');
+  if (!list) return;
+
   list.innerHTML = '';
 
   if (products.length === 0) {
@@ -113,5 +133,6 @@ async function fetchLowStock() {
     list.appendChild(li);
   });
 }
+
 fetchProducts();
 fetchLowStock();

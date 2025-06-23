@@ -24,11 +24,14 @@
 
       <h2>Add New Product</h2>
       <form id="productForm">
-        <input type="text" id="name" placeholder="Product Name" required />
-        <input type="number" id="quantity" placeholder="Quantity" min="1" required />
-        <input type="number" id="price" placeholder="Price" min="0" step="0.01" required />
-        <button type="submit">Add Product</button>
-      </form>
+  <input type="text" id="name" placeholder="Product Name" required />
+  <input type="number" id="quantity" placeholder="Quantity" required />
+  <input type="number" id="price" placeholder="Selling Price" step="0.01" required />
+  <input type="number" id="costPrice" placeholder="Cost Price" step="0.01" required />
+  <input type="number" id="lowStockThreshold" placeholder="Low Stock Threshold (default 10)" />
+  <button type="submit">➕ Add Product</button>
+</form>
+
     </section>
 
     <section class="card">

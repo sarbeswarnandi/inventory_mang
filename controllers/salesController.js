@@ -2,6 +2,7 @@ const Sale = require('../models/Sale');
 const Product = require('../models/Product');
 const Activity = require('../models/Activity');
 
+// Record a new sale and deduct stock
 exports.recordSale = async (req, res) => {
   try {
     const { productId, quantitySold } = req.body;
@@ -21,12 +22,17 @@ exports.recordSale = async (req, res) => {
     product.quantity -= qty;
     await product.save();
 
-    const sale = new Sale({ productId, quantitySold: qty });
+    const sale = new Sale({
+      productId,
+      quantitySold: qty,
+      salePrice: product.price,
+      costPrice: product.costPrice || 0
+    });
     await sale.save();
 
     await Activity.create({
       action: 'Log Sale',
-      details: `Sold ${qty} of "${product.name}" (id: ${product._id})`
+      details: `Sold ${qty} of "${product.name}" for ₹${product.price} each (Cost: ₹${product.costPrice})`
     });
 
     res.status(201).json(sale);
@@ -36,6 +42,7 @@ exports.recordSale = async (req, res) => {
   }
 };
 
+// Paginated and filterable sales log
 exports.getSales = async (req, res) => {
   try {
     const { sort = 'desc', startDate, endDate, page = 1, limit = 10 } = req.query;
@@ -61,19 +68,10 @@ exports.getSales = async (req, res) => {
     const earningsAgg = await Sale.aggregate([
       { $match: filter },
       {
-        $lookup: {
-          from: 'products',
-          localField: 'productId',
-          foreignField: '_id',
-          as: 'product'
-        }
-      },
-      { $unwind: '$product' },
-      {
         $group: {
           _id: null,
           totalEarnings: {
-            $sum: { $multiply: ['$quantitySold', '$product.price'] }
+            $sum: { $multiply: ['$quantitySold', '$salePrice'] }
           }
         }
       }
@@ -93,6 +91,7 @@ exports.getSales = async (req, res) => {
   }
 };
 
+// Analytics: daily revenue, profit, top products
 exports.getAnalytics = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -109,19 +108,28 @@ exports.getAnalytics = async (req, res) => {
       filter.date = { $gte: weekAgo };
     }
 
+    // Daily revenue and net profit
     const dailySales = await Sale.aggregate([
       { $match: filter },
       {
         $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$date" }
-          },
-          quantity: { $sum: "$quantitySold" }
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          quantity: { $sum: "$quantitySold" },
+          revenue: { $sum: { $multiply: ["$quantitySold", "$salePrice"] } },
+          profit: {
+            $sum: {
+              $multiply: [
+                "$quantitySold",
+                { $subtract: ["$salePrice", "$costPrice"] }
+              ]
+            }
+          }
         }
       },
       { $sort: { _id: 1 } }
     ]);
 
+    // Top-selling products
     const topProducts = await Sale.aggregate([
       { $match: filter },
       {
@@ -149,29 +157,12 @@ exports.getAnalytics = async (req, res) => {
       { $limit: 5 }
     ]);
 
-    const totalEarningsAgg = await Sale.aggregate([
-      { $match: filter },
-      {
-        $lookup: {
-          from: "products",
-          localField: "productId",
-          foreignField: "_id",
-          as: "product"
-        }
-      },
-      { $unwind: "$product" },
-      {
-        $group: {
-          _id: null,
-          total: {
-            $sum: { $multiply: ["$quantitySold", "$product.price"] }
-          }
-        }
-      }
-    ]);
+    const totalRevenue = dailySales.reduce((sum, d) => sum + d.revenue, 0);
+    const totalProfit = dailySales.reduce((sum, d) => sum + d.profit, 0);
 
     res.json({
-      totalEarnings: totalEarningsAgg[0]?.total || 0,
+      totalRevenue,
+      totalProfit,
       dailySales,
       topProducts
     });

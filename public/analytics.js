@@ -1,103 +1,118 @@
-const API_BASE = 'http://localhost:5000/api/sales';
-const totalEl = document.getElementById('totalEarnings');
 const startInput = document.getElementById('analyticsStart');
 const endInput = document.getElementById('analyticsEnd');
+const totalEarningsEl = document.getElementById('totalEarnings');
 
-let salesChart, topChart;
+const salesChartCtx = document.getElementById('dailySalesChart').getContext('2d');
+const topProductsChartCtx = document.getElementById('topProductsChart').getContext('2d');
 
-// 🔁 Fetch analytics from server with optional date range
-async function fetchAnalyticsData() {
-  const params = new URLSearchParams();
+let salesChart, topProductsChart;
 
-  const start = startInput?.value;
-  const end = endInput?.value;
+// Helper: Format date to YYYY-MM-DD
+const formatDate = (d) => d.toISOString().split('T')[0];
 
-  if (start) params.append('startDate', start);
-  if (end) params.append('endDate', end);
+// Set default date range (last 7 days)
+const today = new Date();
+const lastWeek = new Date();
+lastWeek.setDate(today.getDate() - 6);
 
+startInput.value = formatDate(lastWeek);
+endInput.value = formatDate(today);
+
+// Load analytics initially
+loadAnalytics(startInput.value, endInput.value);
+
+// Load on date input change
+[startInput, endInput].forEach(input => {
+  input.addEventListener('change', () => {
+    if (startInput.value && endInput.value) {
+      loadAnalytics(startInput.value, endInput.value);
+    }
+  });
+});
+
+async function loadAnalytics(start, end) {
   try {
-    const res = await fetch(`${API_BASE}/analytics?${params}`);
+    const res = await fetch(`/api/sales/analytics?startDate=${start}&endDate=${end}`);
+    if (!res.ok) throw new Error("Failed to fetch analytics");
+
     const { totalEarnings, dailySales, topProducts } = await res.json();
 
-    // Process chart data
-    const salesByDate = Object.fromEntries(dailySales.map(d => [d._id, d.quantity]));
-    const productSales = Object.fromEntries(topProducts.map(p => [p.name, p.quantity]));
+    totalEarningsEl.textContent = `₹${totalEarnings.toFixed(2)}`;
 
-    renderTotalEarnings(totalEarnings);
-    renderDailySalesChart(salesByDate);
-    renderTopProductsChart(productSales);
+    renderDailySalesChart(dailySales);
+    renderTopProductsChart(topProducts);
   } catch (err) {
-    console.error("Analytics error:", err);
-    alert("Failed to load analytics");
+    console.error("Error loading analytics:", err);
+    totalEarningsEl.textContent = "Failed to load";
   }
 }
 
-// 💰 Render total earnings
-function renderTotalEarnings(amount) {
-  totalEl.innerHTML = `<strong>Total Earnings:</strong> ₹${amount.toFixed(2)}`;
-}
-
-// 📊 Daily Sales Chart
 function renderDailySalesChart(data) {
-  const ctx = document.getElementById('dailySalesChart').getContext('2d');
-  const labels = Object.keys(data);
-  const values = Object.values(data);
+  const labels = data.map(d => d._id);
+  const values = data.map(d => d.quantity);
 
   if (salesChart) salesChart.destroy();
-
-  salesChart = new Chart(ctx, {
+  salesChart = new Chart(salesChartCtx, {
     type: 'bar',
     data: {
       labels,
       datasets: [{
         label: 'Units Sold',
         data: values,
-        backgroundColor: '#1d4ed8'
+        backgroundColor: '#3b82f6',
+        borderRadius: 4
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Units'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          }
+        }
+      }
     }
   });
 }
 
-// 🥇 Top Products Chart
 function renderTopProductsChart(data) {
-  const ctx = document.getElementById('topProductsChart').getContext('2d');
-  const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const labels = sorted.map(item => item[0]);
-  const values = sorted.map(item => item[1]);
+  const labels = data.map(d => d.name);
+  const values = data.map(d => d.quantity);
 
-  if (topChart) topChart.destroy();
-
-  topChart = new Chart(ctx, {
-    type: 'pie',
+  if (topProductsChart) topProductsChart.destroy();
+  topProductsChart = new Chart(topProductsChartCtx, {
+    type: 'doughnut',
     data: {
       labels,
       datasets: [{
         label: 'Top Products',
         data: values,
-        backgroundColor: ['#1d4ed8', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe']
+        backgroundColor: [
+          '#1d4ed8', '#3b82f6', '#6366f1', '#818cf8', '#a5b4fc'
+        ],
+        borderColor: '#fff',
+        borderWidth: 1
       }]
     },
     options: {
-      responsive: true
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
     }
   });
 }
-
-// 🔄 Date filter change
-function applyAnalyticsFilter() {
-  fetchAnalyticsData();
-}
-
-// 📅 Auto fetch on load
-document.addEventListener('DOMContentLoaded', () => {
-  if (startInput && endInput) {
-    startInput.addEventListener('change', applyAnalyticsFilter);
-    endInput.addEventListener('change', applyAnalyticsFilter);
-  }
-  fetchAnalyticsData();
-});

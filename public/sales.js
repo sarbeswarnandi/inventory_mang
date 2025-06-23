@@ -120,7 +120,8 @@ saleForm.addEventListener('submit', async (e) => {
     alert(`Error: ${err.message}`);
   }
 });
-
+  
 // Init
 loadProducts();
 loadSales();
+  
