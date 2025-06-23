@@ -2,47 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SLIM – Inventory Manager</title>
+  <title>SLIM - Inventory Manager</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="headerContainer"></div>
-<script>
-  fetch('header.html')
-    .then(res => res.text())
-    .then(html => document.getElementById('headerContainer').innerHTML = html);
-</script>
 
+  <div class="container">
+    <header>
+      <h1>📦 Smart Local Inventory Manager</h1>
+      <a href="analytics.html" class="back-btn">📊 View Analytics</a>
+    </header>
 
-  <main>
-    <section class="card">
-      <section class="card">
-    <h2>⚠️ Low Stock Alerts</h2>
-    <ul id="lowStockList" class="product-list"></ul>
+    <form id="productForm">
+      <input type="text" id="name" placeholder="Product Name" required />
+      <input type="number" id="quantity" placeholder="Quantity" required />
+      <input type="number" id="price" placeholder="Selling Price" required />
+      <input type="number" id="costPrice" placeholder="Cost Price" required />
+      <input type="number" id="lowStockThreshold" placeholder="Low Stock Alert" value="10" required />
+      <button type="submit">➕ Add Product</button>
+    </form>
+
+    <section>
+      <h2>📋 Product List</h2>
+      <ul id="productList"></ul>
     </section>
 
-
-      <h2>Add New Product</h2>
-      <form id="productForm">
-  <input type="text" id="name" placeholder="Product Name" required />
-  <input type="number" id="quantity" placeholder="Quantity" required />
-  <input type="number" id="price" placeholder="Selling Price" step="0.01" required />
-  <input type="number" id="costPrice" placeholder="Cost Price" step="0.01" required />
-  <input type="number" id="lowStockThreshold" placeholder="Low Stock Threshold (default 10)" />
-  <button type="submit">➕ Add Product</button>
-</form>
-
+    <section>
+      <h2>⚠️ Low Stock Alerts</h2>
+      <ul id="lowStockList"></ul>
     </section>
-
-    <section class="card">
-      <h2>Product List</h2>
-      <ul id="productList" class="product-list"></ul>
-    </section>
-
-    
-
-  </main>
+  </div>
 
   <script src="script.js"></script>
+  <script>
+    fetch('header.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('headerContainer').innerHTML = html;
+      });
+  </script>
 </body>
 </html>

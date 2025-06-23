@@ -14,7 +14,6 @@
       <a href="index.html" class="back-btn">← Back</a>
     </header>
 
-    <!-- 🔍 Date filter inputs -->
     <div style="display:flex; gap:1rem; margin:1rem 0;">
       <label>From:
         <input type="date" id="analyticsStart" />
@@ -26,24 +25,22 @@
 
     <div class="cards">
       <div class="card">
-        <h2>🧮 Total Earnings</h2>
-        <p id="totalEarnings">Loading...</p>
+        <h2>🧮 Total Revenue</h2>
+        <p id="totalRevenue">Loading...</p>
+      </div>
+      <div class="card">
+        <h2>💰 Net Profit</h2>
+        <p id="totalProfit">Loading...</p>
       </div>
     </div>
 
     <div class="charts">
       <div class="chart-card">
-        <h3>📆 Sales in Selected Date Range</h3>
+        <h3>📆 Daily Sales</h3>
         <canvas id="dailySalesChart"></canvas>
       </div>
       <div class="chart-card">
-      <h3>💰 Daily Net Profit</h3>
-      <canvas id="dailyProfitChart"></canvas>
-      </div>
-
-
-      <div class="chart-card">
-        <h3>🏆 Top Selling Products</h3>
+        <h3>🏆 Top Products</h3>
         <canvas id="topProductsChart"></canvas>
       </div>
     </div>
