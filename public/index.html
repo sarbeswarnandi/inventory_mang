@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SLIM - Inventory Manager</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -9,29 +10,34 @@
   <div id="headerContainer"></div>
 
   <div class="container">
-    <header>
+    <header class="main-header">
       <h1>📦 Smart Local Inventory Manager</h1>
-      <a href="analytics.html" class="back-btn">📊 View Analytics</a>
+      <a href="analytics.html" class="analytics-link">📊 View Analytics</a>
     </header>
 
-    <form id="productForm">
-      <input type="text" id="name" placeholder="Product Name" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <input type="number" id="price" placeholder="Selling Price" required />
-      <input type="number" id="costPrice" placeholder="Cost Price" required />
-      <input type="number" id="lowStockThreshold" placeholder="Low Stock Alert" value="10" required />
-      <button type="submit">➕ Add Product</button>
-    </form>
-
-    <section>
-      <h2>📋 Product List</h2>
-      <ul id="productList"></ul>
+    <section class="card">
+      <h2>➕ Add New Product</h2>
+      <form id="productForm">
+        <input type="text" id="name" placeholder="Product Name" required />
+        <input type="number" id="quantity" placeholder="Quantity" required />
+        <input type="number" id="price" placeholder="Selling Price (₹)" required />
+        <input type="number" id="costPrice" placeholder="Cost Price (₹)" required />
+        <input type="number" id="lowStockThreshold" placeholder="Low Stock Threshold" value="10" required />
+        <button type="submit">Add Product</button>
+      </form>
     </section>
 
-    <section>
+    <section class="card">
       <h2>⚠️ Low Stock Alerts</h2>
-      <ul id="lowStockList"></ul>
+      <ul id="lowStockList" class="product-list"></ul>
     </section>
+
+    <section class="card">
+      <h2>📋 Product List</h2>
+      <ul id="productList" class="product-list"></ul>
+    </section>
+
+    
   </div>
 
   <script src="script.js"></script>
