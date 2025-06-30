@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Log Sale – SLIM</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="headerContainer"></div>
-<script>
-  fetch('header.html')
-    .then(res => res.text())
-    .then(html => document.getElementById('headerContainer').innerHTML = html);
-</script>
+  <script>
+    fetch('header.html')
+      .then(r => r.text())
+      .then(t => document.getElementById('headerContainer').innerHTML = t);
+  </script>
 
-
-  <main>
+  <div class="container">
     <section class="card">
       <h2>Log a New Sale</h2>
       <form id="saleForm">
-        <select id="productSelect" required></select>
-        <input type="number" id="saleQuantity" placeholder="Quantity Sold" min="1" required />
-        <button type="submit">Submit Sale</button>
+        <input list="productListDatalist" id="productSearch" placeholder="Search product..." required>
+        <datalist id="productListDatalist"></datalist>
+        <input type="hidden" id="productSelect">
+        <input type="number" id="saleQuantity" placeholder="Quantity" min="1" value="1" required>
+        <button type="submit">Submit</button>
       </form>
     </section>
 
@@ -33,19 +34,19 @@
             <option value="asc">Oldest First</option>
           </select>
         </label>
-        <label>From: <input type="date" id="startDate" onchange="applyFilters()" /></label>
-        <label>To: <input type="date" id="endDate" onchange="applyFilters()" /></label>
-        <button onclick="downloadCSV()">Download CSV</button>
+        <label>From: <input type="date" id="startDate" onchange="applyFilters()"></label>
+        <label>To: <input type="date" id="endDate" onchange="applyFilters()"></label>
+        <button type="button" onclick="downloadCSV()">Download CSV</button>
       </div>
       <div id="totalEarnings" class="earnings"></div>
-      <ul id="salesList" class="sale-list"></ul>
+      <ul id="salesList" class="product-list"></ul>
       <div class="pagination">
         <button onclick="changePage(-1)">Prev</button>
         <span id="pageInfo"></span>
         <button onclick="changePage(1)">Next</button>
       </div>
     </section>
-  </main>
+  </div>
 
   <script src="sales.js"></script>
 </body>

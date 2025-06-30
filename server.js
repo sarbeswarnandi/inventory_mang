@@ -26,11 +26,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server on local network (e.g. 192.168.x.x:5000)
-const PORT = process.env.PORT || 5000;
-const HOST = '0.0.0.0'; // Allow access from all network interfaces
-
-app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-  console.log(`🌐 Access on local network at: http://<your-local-ip>:${PORT}`);
+// ✅ Error-handling middleware (catch-all)
+app.use((err, req, res, next) => {
+  console.error('💥 Error handler caught:', err.stack);
+  res.status(500).send('Something broke!');
 });
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
